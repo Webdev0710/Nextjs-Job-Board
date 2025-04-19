@@ -15,6 +15,26 @@ const schema = Joi.object({
 
 export default async (req, res) => {
 
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader(
+        'Access-Control-Allow-Origin',
+        'https://nextjs-job-board-hwwv-52lwsl3zm-suntians-projects.vercel.app' // Replace with your actual frontend domain
+    );
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Content-Type, Authorization'
+    );
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end(); // 🛑 Stop here for preflight requests
+    }
+
+    // ✅ Ensure POST method only
+    if (req.method !== 'POST') {
+        return res.status(405).json({ success: false, message: 'Method Not Allowed' });
+    }
+
     await ConnectDB();
 
     const { email, password } = req.body;
@@ -24,17 +44,33 @@ export default async (req, res) => {
 
     try {
         const checkUser = await User.findOne({ email });
-        if (!checkUser) return res.status(401).json({ success: false, message: "Account not Found" });
-
+        if (!checkUser) {
+          return res.status(401).json({ success: false, message: 'Account not Found' });
+        }
+    
         const isMatch = await compare(password, checkUser.password);
-        if (!isMatch) return res.status(401).json({ success: false, message: "Incorrect Password" });
-
-        const token = jwt.sign({ id: checkUser._id, email: checkUser.email }, process.env.JWT_SECREAT, { expiresIn: '1d' });
-        const finalData = {token , user : checkUser}
-        return res.status(200).json({ success: true, message: "Login Successfull",  finalData})
-
-    } catch (error) {
-        console.log('Error in register (server) => ', error);
-        return res.status(500).json({ success: false, message: "Something Went Wrong Please Retry Later !" })
-    }
+        if (!isMatch) {
+          return res.status(401).json({ success: false, message: 'Incorrect Password' });
+        }
+    
+        const token = jwt.sign(
+          { id: checkUser._id, email: checkUser.email },
+          process.env.JWT_SECREAT,
+          { expiresIn: '1d' }
+        );
+    
+        const finalData = { token, user: checkUser };
+    
+        return res.status(200).json({
+          success: true,
+          message: 'Login Successful',
+          finalData,
+        });
+      } catch (err) {
+        console.error('Error in login (server):', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Something Went Wrong, Please Retry Later!',
+        });
+      }
 }
