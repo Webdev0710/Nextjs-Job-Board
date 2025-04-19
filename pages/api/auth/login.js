@@ -18,7 +18,7 @@ export default async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader(
         'Access-Control-Allow-Origin',
-        'https://nextjs-job-board-hwwv-52lwsl3zm-suntians-projects.vercel.app' // Replace with your actual frontend domain
+        'https://nextjs-job-board-ashy.vercel.app/'
     );
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
     res.setHeader(
